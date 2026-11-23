@@ -39,13 +39,28 @@ The expected directions are enforced as monotonic constraints in the gradient bo
 python -m venv .venv && source .venv/bin/activate
 make install
 make test
+make train
 ```
+
+`make train` fits the scorecard and writes the model, metrics, calibration table and coefficients to `artifacts/`.
+
+## Evaluation
+
+| Metric | Meaning |
+|---|---|
+| Gini | `2 × AUC − 1`, the standard ranking measure in retail credit |
+| KS | Maximum separation between the cumulative distributions of good and bad applicants |
+| Brier score | Mean squared error of the predicted default probability |
+| Calibration | Predicted vs. observed default rate per risk decile |
+
+Probabilities of default are mapped to a points score (600 points at 50:1 good:bad odds, 20 points to double the odds), the format credit decisions are usually communicated in.
 
 ## Roadmap
 
 - [x] Data layer: real/synthetic loader, single schema, tests, CI
 - [x] Feature engineering (affordability ratios, bureau scores)
-- [ ] Baseline logistic scorecard vs. monotonic LightGBM
+- [x] Baseline logistic scorecard with points scaling and evaluation (Gini, KS, Brier, calibration)
+- [ ] Monotonic LightGBM and model comparison
 - [ ] SHAP-based adverse-action reason codes
 - [ ] Fairness audit across gender and age bands
 - [ ] FastAPI scoring service + Docker

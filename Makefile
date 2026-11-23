@@ -1,4 +1,4 @@
-.PHONY: install lint format test
+.PHONY: install lint format test train
 
 install:
 	pip install -e ".[api,dashboard,dev]"
@@ -11,3 +11,6 @@ format:
 
 test:
 	pytest
+
+train:
+	python -m credit_underwriting.train --model scorecard
