@@ -1,10 +1,3 @@
-"""Synthetic loan applications following the Home Credit schema.
-
-Used for tests, CI and demos so the pipeline runs without the Kaggle file and
-without personal data. Default risk increases with repayment burden and
-decreases with bureau score quality, which gives tests a known signal to check.
-"""
-
 from __future__ import annotations
 
 import numpy as np

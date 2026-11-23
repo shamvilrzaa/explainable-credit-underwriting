@@ -1,15 +1,8 @@
-"""Single source of truth for the columns the model uses.
-
-The names follow the Home Credit Default Risk dataset, so the synthetic
-generator and the real data go through exactly the same pipeline.
-"""
-
 from __future__ import annotations
 
-TARGET = "TARGET"  # 1 = client had payment difficulties (default proxy)
+TARGET = "TARGET"
 ID = "SK_ID_CURR"
 
-# Raw input columns taken from application_train.csv
 RAW_NUMERIC = [
     "AMT_INCOME_TOTAL",
     "AMT_CREDIT",
@@ -29,14 +22,10 @@ RAW_CATEGORICAL = [
     "NAME_HOUSING_TYPE",
 ]
 
-# Protected attributes: kept for the fairness audit, NEVER used as model features.
 PROTECTED = ["CODE_GENDER", "DAYS_BIRTH"]
 
 RAW_COLUMNS = [ID, TARGET, *RAW_NUMERIC, *RAW_CATEGORICAL, "CODE_GENDER"]
 
-# Engineered features the model is trained on (see features.py).
-# Value = expected direction of effect on default risk, used for monotonic constraints:
-#   +1 risk rises with the feature, -1 risk falls, 0 unconstrained.
 FEATURES: dict[str, int] = {
     "debt_to_income": +1,
     "annuity_to_income": +1,
@@ -49,7 +38,6 @@ FEATURES: dict[str, int] = {
     "cnt_children": 0,
 }
 
-# Plain-language labels used for adverse-action reason codes.
 FEATURE_LABELS: dict[str, str] = {
     "debt_to_income": "Requested credit is high relative to income",
     "annuity_to_income": "Monthly repayment burden is high relative to income",

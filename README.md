@@ -19,6 +19,20 @@ To use the real data, download `application_train.csv` from the [Home Credit Def
 
 Protected attributes (gender, age) are **excluded from the model features** and used only for the fairness audit.
 
+## Features
+
+| Feature | Definition | Expected effect on risk |
+|---|---|---|
+| `debt_to_income` | Credit amount / annual income | ↑ |
+| `annuity_to_income` | Annual repayment / annual income | ↑ |
+| `credit_to_goods` | Credit amount / price of financed goods | ↑ |
+| `employment_years` | Years in current employment (capped at 45) | ↓ |
+| `ext_source_mean`, `ext_source_min` | Mean / minimum of external bureau scores | ↓ |
+| `income_log`, `credit_log` | Log of income and credit amount | – |
+| `cnt_children` | Number of children | – |
+
+The expected directions are enforced as monotonic constraints in the gradient boosting model, so the model cannot learn counter-intuitive relationships such as "more debt lowers risk".
+
 ## Quickstart
 
 ```bash
@@ -30,7 +44,7 @@ make test
 ## Roadmap
 
 - [x] Data layer: real/synthetic loader, single schema, tests, CI
-- [ ] Feature engineering (affordability ratios, bureau scores)
+- [x] Feature engineering (affordability ratios, bureau scores)
 - [ ] Baseline logistic scorecard vs. monotonic LightGBM
 - [ ] SHAP-based adverse-action reason codes
 - [ ] Fairness audit across gender and age bands
