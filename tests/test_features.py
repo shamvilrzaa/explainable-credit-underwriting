@@ -11,7 +11,7 @@ def _row(**overrides) -> pd.DataFrame:
     base = {
         "AMT_INCOME_TOTAL": 60_000.0,
         "AMT_CREDIT": 120_000.0,
-        "AMT_ANNUITY": 1_000.0,
+        "AMT_ANNUITY": 12_000.0,
         "AMT_GOODS_PRICE": 100_000.0,
         "DAYS_EMPLOYED": -730,
         "CNT_CHILDREN": 1,

@@ -29,7 +29,7 @@ Protected attributes (gender, age) are **excluded from the model features** and 
 | Feature | Definition | Expected effect on risk |
 |---|---|---|
 | `debt_to_income` | Credit amount / annual income | ↑ |
-| `annuity_to_income` | Annual repayment / annual income | ↑ |
+| `annuity_to_income` | Loan annuity / annual income | ↑ |
 | `credit_to_goods` | Credit amount / price of financed goods | ↑ |
 | `employment_years` | Years in current employment (capped at 45) | ↓ |
 | `ext_source_mean`, `ext_source_min` | Mean / minimum of external bureau scores | ↓ |
@@ -50,7 +50,7 @@ make train
 | Command | Output |
 |---|---|
 | `make train` | Fits the scorecard and writes model, metrics, calibration table and coefficients to `artifacts/` |
-| `make report` | Trains all models on the same split, writes `artifacts/comparison.md` and the charts in `docs/images/` |
+| `make report` | Trains all models, compares them, explains test-set decisions and writes the charts in `docs/images/` |
 
 ## Models
 
@@ -75,6 +75,39 @@ Results below are on synthetic data and will be replaced with Home Credit result
   <img src="docs/images/calibration.png" width="45%" />
 </p>
 
+## Decisions and reason codes
+
+Each application gets a probability of default, a points score and one of three outcomes:
+
+| Outcome | Rule (default policy) |
+|---|---|
+| Approve | PD below 5% |
+| Refer to an underwriter | PD between 5% and 15% |
+| Decline | PD above 15% |
+
+Every referred or declined application comes with up to four reasons, derived from SHAP values of the gradient boosting model. Only features with a defined risk direction can become a reason, so each reason is a clear, actionable statement rather than "income level".
+
+```json
+{
+  "applicant_id": 113604,
+  "probability_of_default": 0.1904,
+  "score": 529,
+  "outcome": "decline",
+  "reasons": [
+    {"feature": "annuity_to_income", "label": "Loan repayments are high relative to income", "value": 0.3254, "contribution": 1.0211},
+    {"feature": "ext_source_mean", "label": "Weak external credit bureau scores", "value": 0.3397, "contribution": 0.4897},
+    {"feature": "debt_to_income", "label": "Requested credit is high relative to income", "value": 7.3017, "contribution": 0.2966}
+  ]
+}
+```
+
+<p float="left">
+  <img src="docs/images/shap_importance.png" width="45%" />
+  <img src="docs/images/shap_declined_example.png" width="45%" />
+</p>
+
+SHAP contributions are additive in log-odds: base value plus contributions equals the model output exactly, which is checked in `tests/test_explain.py`.
+
 ## Evaluation
 
 | Metric | Meaning |
@@ -92,7 +125,7 @@ Probabilities of default are mapped to a points score (600 points at 50:1 good:b
 - [x] Feature engineering (affordability ratios, bureau scores)
 - [x] Baseline logistic scorecard with points scaling and evaluation (Gini, KS, Brier, calibration)
 - [x] Monotonic LightGBM and model comparison
-- [ ] SHAP-based adverse-action reason codes
+- [x] SHAP-based adverse-action reason codes and decision policy
 - [ ] Fairness audit across gender and age bands
 - [ ] FastAPI scoring service + Docker
 - [ ] Streamlit underwriter dashboard

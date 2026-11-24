@@ -46,7 +46,7 @@ class FeatureBuilder(BaseEstimator, TransformerMixin):
         features = pd.DataFrame(
             {
                 "debt_to_income": safe_ratio(credit, income),
-                "annuity_to_income": safe_ratio(X["AMT_ANNUITY"] * 12, income),
+                "annuity_to_income": safe_ratio(X["AMT_ANNUITY"], income),
                 "credit_to_goods": safe_ratio(credit, X["AMT_GOODS_PRICE"]),
                 "employment_years": employment_years,
                 "ext_source_mean": ext.mean(axis=1),

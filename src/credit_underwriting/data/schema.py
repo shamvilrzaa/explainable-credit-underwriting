@@ -40,7 +40,7 @@ FEATURES: dict[str, int] = {
 
 FEATURE_LABELS: dict[str, str] = {
     "debt_to_income": "Requested credit is high relative to income",
-    "annuity_to_income": "Monthly repayment burden is high relative to income",
+    "annuity_to_income": "Loan repayments are high relative to income",
     "credit_to_goods": "Loan amount exceeds the value of the financed goods",
     "employment_years": "Short employment history",
     "ext_source_mean": "Weak external credit bureau scores",

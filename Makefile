@@ -17,3 +17,4 @@ train:
 
 report:
 	python -m credit_underwriting.compare
+	python -m credit_underwriting.explain_report

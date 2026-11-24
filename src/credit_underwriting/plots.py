@@ -3,6 +3,7 @@ from __future__ import annotations
 from pathlib import Path
 
 import numpy as np
+import pandas as pd
 from matplotlib.axes import Axes
 from matplotlib.figure import Figure
 from sklearn.metrics import roc_curve
@@ -12,6 +13,8 @@ from credit_underwriting.metrics import calibration_table, gini
 Curves = dict[str, tuple[np.ndarray, np.ndarray]]
 
 COLORS = ["#4C6EF5", "#F59F00", "#12B886", "#E64980"]
+RISK_UP = "#E03131"
+RISK_DOWN = "#2F9E44"
 
 
 def _style(ax: Axes, title: str, xlabel: str, ylabel: str) -> None:
@@ -60,3 +63,27 @@ def _save(fig: Figure, path: Path) -> Path:
     fig.tight_layout()
     fig.savefig(path, dpi=150)
     return path
+
+
+def plot_global_importance(importance: pd.Series, path: Path) -> Path:
+    ordered = importance.sort_values()
+    fig = Figure(figsize=(7, 4.5))
+    ax = fig.subplots()
+    ax.barh(ordered.index, ordered.to_numpy(), color=COLORS[0])
+    _style(ax, "Global feature importance", "Mean |SHAP value| (log-odds)", "")
+    ax.grid(axis="y", visible=False)
+    return _save(fig, path)
+
+
+def plot_applicant_contributions(
+    contributions: pd.Series, path: Path, title: str = "Why was this applicant declined?"
+) -> Path:
+    ordered = contributions.reindex(contributions.abs().sort_values().index)
+    colors = [RISK_UP if v > 0 else RISK_DOWN for v in ordered]
+    fig = Figure(figsize=(7, 4.5))
+    ax = fig.subplots()
+    ax.barh(ordered.index, ordered.to_numpy(), color=colors)
+    ax.axvline(0, color="grey", lw=1)
+    _style(ax, title, "Contribution to risk (log-odds)", "")
+    ax.grid(axis="y", visible=False)
+    return _save(fig, path)
