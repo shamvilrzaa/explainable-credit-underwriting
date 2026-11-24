@@ -13,6 +13,22 @@
 
 Under the EU AI Act, AI systems used to assess creditworthiness are classified as **high-risk** (Annex III). Lenders must be able to explain decisions, monitor for bias and document their models. This project builds a credit model the way a regulated lender would have to, not just the way a Kaggle leaderboard rewards.
 
+## Architecture
+
+```mermaid
+flowchart LR
+    A[Loan application<br/>JSON] --> B[FastAPI<br/>validation]
+    B --> C[FeatureBuilder<br/>affordability ratios]
+    C --> D[LightGBM<br/>monotonic constraints]
+    D --> E[Decision policy<br/>approve / refer / decline]
+    D --> F[SHAP explainer<br/>reason codes]
+    E --> G[Response<br/>PD, score, outcome, reasons]
+    F --> G
+    H[(Training data)] --> I[Training and<br/>evaluation]
+    I --> D
+    I --> J[Fairness audit]
+```
+
 ## Data
 
 | Mode | When | Use |
@@ -122,6 +138,40 @@ Gender and age are never model inputs, but other features can act as proxies (em
 
 On synthetic data, approval ratios stay above 0.9 for every group, but the model overestimates risk for applicants under 30 by about 3 percentage points: their short employment history is penalised more than their actual default rate justifies. In production this would trigger a review of the employment feature or a group-level recalibration. Full tables are written to `artifacts/fairness.md`.
 
+## Scoring API
+
+```bash
+make serve
+```
+
+Interactive documentation is available at http://localhost:8000/docs.
+
+| Endpoint | Description |
+|---|---|
+| `GET /health` | Liveness check |
+| `GET /v1/model` | Model version (hash of the model file), policy thresholds and features |
+| `POST /v1/decisions` | Decision for one application |
+| `POST /v1/decisions/batch` | Decisions for up to 1,000 applications |
+
+```bash
+curl -X POST localhost:8000/v1/decisions -H "Content-Type: application/json" -d '{
+  "applicant_id": 1001, "income_total": 54000, "credit_amount": 270000,
+  "annuity": 18500, "goods_price": 250000, "employment_years": 3.5,
+  "children": 1, "ext_source_2": 0.42, "ext_source_3": 0.35
+}'
+```
+
+The API does not accept gender or age: unknown fields are rejected, so protected attributes cannot reach the model by accident. Every response carries the model version, which makes each decision traceable to the exact model that produced it.
+
+### Docker
+
+```bash
+make docker-build
+make docker-run
+```
+
+The image is multi-stage, runs as a non-root user and has a health check. CI builds it on every push and sends a test request to the running container.
+
 ## Evaluation
 
 | Metric | Meaning |
@@ -141,7 +191,7 @@ Probabilities of default are mapped to a points score (600 points at 50:1 good:b
 - [x] Monotonic LightGBM and model comparison
 - [x] SHAP-based adverse-action reason codes and decision policy
 - [x] Fairness audit across gender and age bands
-- [ ] FastAPI scoring service + Docker
+- [x] FastAPI scoring service, Docker image and container smoke test in CI
 - [ ] Streamlit underwriter dashboard
 - [ ] Model card and AI Act technical documentation
 

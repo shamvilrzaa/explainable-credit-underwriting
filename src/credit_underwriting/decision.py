@@ -78,7 +78,7 @@ class Underwriter:
             outcome = self.policy.outcome(float(pd_))
             decisions.append(
                 Decision(
-                    applicant_id=None if applicant_id is None else int(applicant_id),
+                    applicant_id=None if pd.isna(applicant_id) else int(applicant_id),
                     probability_of_default=round(float(pd_), 4),
                     score=int(score),
                     outcome=outcome,
