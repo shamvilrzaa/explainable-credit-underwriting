@@ -1,5 +1,10 @@
 # Explainable Credit Underwriting
 
+[![CI](https://github.com/shamvilrzaa/explainable-credit-underwriting/actions/workflows/ci.yml/badge.svg)](https://github.com/shamvilrzaa/explainable-credit-underwriting/actions/workflows/ci.yml)
+![Python](https://img.shields.io/badge/python-3.11%20%7C%203.12-blue)
+![Code style: ruff](https://img.shields.io/badge/code%20style-ruff-261230)
+![License: MIT](https://img.shields.io/badge/license-MIT-green)
+
 > An EU AI Act-aware credit underwriting engine: probability-of-default model, adverse-action reason codes, fairness audit, and a production-style scoring API.
 
 **Status:** work in progress. See the roadmap below.
@@ -42,7 +47,33 @@ make test
 make train
 ```
 
-`make train` fits the scorecard and writes the model, metrics, calibration table and coefficients to `artifacts/`.
+| Command | Output |
+|---|---|
+| `make train` | Fits the scorecard and writes model, metrics, calibration table and coefficients to `artifacts/` |
+| `make report` | Trains all models on the same split, writes `artifacts/comparison.md` and the charts in `docs/images/` |
+
+## Models
+
+| Model | Description |
+|---|---|
+| Scorecard | Logistic regression on standardised features, median imputation with missing-value indicators |
+| Gradient boosting | LightGBM with monotonic constraints on every feature with a known risk direction |
+
+Monotonic constraints guarantee that, all else equal, a higher repayment burden or a weaker bureau score never lowers the predicted risk. Without them, correlated features can produce counter-intuitive effects that are hard to defend to a regulator or a rejected applicant. The constraints are verified in `tests/test_gbm.py`.
+
+## Results
+
+Results below are on synthetic data and will be replaced with Home Credit results.
+
+| model | Gini | AUC | KS | Brier |
+|---|---|---|---|---|
+| Scorecard | 0.707 | 0.853 | 0.564 | 0.085 |
+| LightGBM (monotonic) | 0.725 | 0.862 | 0.589 | 0.085 |
+
+<p float="left">
+  <img src="docs/images/roc.png" width="45%" />
+  <img src="docs/images/calibration.png" width="45%" />
+</p>
 
 ## Evaluation
 
@@ -60,7 +91,7 @@ Probabilities of default are mapped to a points score (600 points at 50:1 good:b
 - [x] Data layer: real/synthetic loader, single schema, tests, CI
 - [x] Feature engineering (affordability ratios, bureau scores)
 - [x] Baseline logistic scorecard with points scaling and evaluation (Gini, KS, Brier, calibration)
-- [ ] Monotonic LightGBM and model comparison
+- [x] Monotonic LightGBM and model comparison
 - [ ] SHAP-based adverse-action reason codes
 - [ ] Fairness audit across gender and age bands
 - [ ] FastAPI scoring service + Docker
