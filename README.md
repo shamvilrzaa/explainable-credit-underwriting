@@ -108,6 +108,20 @@ Every referred or declined application comes with up to four reasons, derived fr
 
 SHAP contributions are additive in log-odds: base value plus contributions equals the model output exactly, which is checked in `tests/test_explain.py`.
 
+## Fairness audit
+
+Gender and age are never model inputs, but other features can act as proxies (employment length correlates with age, for example). The audit therefore checks outcomes per group on the test set:
+
+| Check | Threshold |
+|---|---|
+| Approval ratio vs. best-treated group (four-fifths rule) | ≥ 0.80 |
+| Approval-rate gap among applicants who did not default (equal opportunity) | ≤ 10 pp |
+| Calibration gap: mean predicted PD minus observed default rate | ≤ 2 pp |
+
+![Fairness audit](docs/images/fairness.png)
+
+On synthetic data, approval ratios stay above 0.9 for every group, but the model overestimates risk for applicants under 30 by about 3 percentage points: their short employment history is penalised more than their actual default rate justifies. In production this would trigger a review of the employment feature or a group-level recalibration. Full tables are written to `artifacts/fairness.md`.
+
 ## Evaluation
 
 | Metric | Meaning |
@@ -126,7 +140,7 @@ Probabilities of default are mapped to a points score (600 points at 50:1 good:b
 - [x] Baseline logistic scorecard with points scaling and evaluation (Gini, KS, Brier, calibration)
 - [x] Monotonic LightGBM and model comparison
 - [x] SHAP-based adverse-action reason codes and decision policy
-- [ ] Fairness audit across gender and age bands
+- [x] Fairness audit across gender and age bands
 - [ ] FastAPI scoring service + Docker
 - [ ] Streamlit underwriter dashboard
 - [ ] Model card and AI Act technical documentation

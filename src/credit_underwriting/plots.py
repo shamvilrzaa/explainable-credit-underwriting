@@ -58,9 +58,9 @@ def plot_calibration(curves: Curves, path: Path, bins: int = 10) -> Path:
     return _save(fig, path)
 
 
-def _save(fig: Figure, path: Path) -> Path:
+def _save(fig: Figure, path: Path, rect: tuple[float, ...] = (0, 0, 1, 1)) -> Path:
     path.parent.mkdir(parents=True, exist_ok=True)
-    fig.tight_layout()
+    fig.tight_layout(rect=rect)
     fig.savefig(path, dpi=150)
     return path
 
@@ -87,3 +87,28 @@ def plot_applicant_contributions(
     _style(ax, title, "Contribution to risk (log-odds)", "")
     ax.grid(axis="y", visible=False)
     return _save(fig, path)
+
+
+def plot_fairness(tables: dict[str, pd.DataFrame], path: Path) -> Path:
+    fig = Figure(figsize=(10, 4.2))
+    axes = fig.subplots(1, len(tables), sharey=True)
+    axes = np.atleast_1d(axes)
+    width = 0.38
+    for ax, (attribute, table) in zip(axes, tables.items(), strict=True):
+        x = np.arange(len(table))
+        ax.bar(x - width / 2, table["approval_rate"], width, color=COLORS[0], label="Approval rate")
+        ax.bar(
+            x + width / 2,
+            table["good_approval_rate"],
+            width,
+            color=COLORS[2],
+            label="Approval rate (non-defaulters)",
+        )
+        ax.plot(x, table["default_rate"], "o", color=RISK_UP, label="Observed default rate")
+        ax.set_xticks(x, table.index)
+        _style(ax, attribute.replace("_", " ").capitalize(), "", "")
+        ax.grid(axis="x", visible=False)
+    axes[0].set_ylabel("Rate")
+    handles, labels = axes[0].get_legend_handles_labels()
+    fig.legend(handles, labels, frameon=False, loc="lower center", ncols=3, fontsize=9)
+    return _save(fig, path, rect=(0, 0.08, 1, 1))
