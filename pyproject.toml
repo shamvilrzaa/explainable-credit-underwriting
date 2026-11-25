@@ -4,8 +4,8 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "credit-underwriting"
-version = "0.1.0"
-description = "Explainable, EU AI Act-aware credit underwriting engine: PD model, reason codes, fairness audit, scoring API."
+version = "0.2.0"
+description = "Klarlend: explainable credit underwriting with reason codes, fairness audit, scoring API and review console."
 readme = "README.md"
 requires-python = ">=3.11"
 license = { text = "MIT" }

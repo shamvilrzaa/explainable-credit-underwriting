@@ -19,7 +19,7 @@ from credit_underwriting.api.schemas import (
 )
 from credit_underwriting.api.settings import Settings
 from credit_underwriting.data.schema import FEATURES
-from credit_underwriting.decision import Decision, DecisionPolicy, Underwriter
+from credit_underwriting.decision import Decision, Underwriter
 
 log = logging.getLogger(__name__)
 
@@ -28,8 +28,7 @@ def load_underwriter(settings: Settings) -> tuple[Underwriter, str]:
     if not settings.model_path.exists():
         raise FileNotFoundError(f"Model not found at {settings.model_path}; run `make train-gbm`")
     version = hashlib.sha256(settings.model_path.read_bytes()).hexdigest()[:12]
-    policy = DecisionPolicy(settings.approve_below, settings.decline_above)
-    return Underwriter(joblib.load(settings.model_path), policy=policy), version
+    return Underwriter(joblib.load(settings.model_path), policy=settings.policy), version
 
 
 def create_app(underwriter: Underwriter | None = None, model_version: str = "test") -> FastAPI:

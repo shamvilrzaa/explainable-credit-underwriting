@@ -49,3 +49,15 @@ FEATURE_LABELS: dict[str, str] = {
     "credit_log": "Loan size",
     "cnt_children": "Number of dependants",
 }
+
+FEATURE_NAMES: dict[str, str] = {
+    "debt_to_income": "Credit / income",
+    "annuity_to_income": "Repayment / income",
+    "credit_to_goods": "Credit / goods price",
+    "employment_years": "Years employed",
+    "ext_source_mean": "Bureau score (mean)",
+    "ext_source_min": "Bureau score (lowest)",
+    "income_log": "Income",
+    "credit_log": "Loan amount",
+    "cnt_children": "Children",
+}

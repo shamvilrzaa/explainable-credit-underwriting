@@ -3,7 +3,7 @@ FROM python:3.12-slim AS builder
 WORKDIR /build
 COPY pyproject.toml README.md ./
 COPY src ./src
-RUN pip install --no-cache-dir --prefix=/install ".[api]"
+RUN pip install --no-cache-dir --prefix=/install ".[api,dashboard]"
 
 FROM python:3.12-slim
 
@@ -14,13 +14,18 @@ RUN apt-get update \
 
 COPY --from=builder /install /usr/local
 WORKDIR /app
-COPY --chown=app:app artifacts/gbm.joblib ./artifacts/gbm.joblib
+COPY --chown=app:app artifacts/gbm.joblib ./model/gbm.joblib
+COPY --chown=app:app dashboard ./dashboard
+COPY --chown=app:app .streamlit ./.streamlit
+RUN mkdir -p /app/data && chown app:app /app/data
 
 USER app
-ENV MODEL_PATH=/app/artifacts/gbm.joblib \
+ENV MODEL_PATH=/app/model/gbm.joblib \
+    POLICY_PATH=/app/data/policy.json \
+    REVIEW_LOG_PATH=/app/data/review_log.csv \
     PYTHONUNBUFFERED=1
 
-EXPOSE 8000
+EXPOSE 8000 8501
 HEALTHCHECK --interval=30s --timeout=3s --start-period=10s \
     CMD curl -fsS http://localhost:8000/health || exit 1
 

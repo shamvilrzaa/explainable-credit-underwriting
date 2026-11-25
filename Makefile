@@ -1,4 +1,4 @@
-.PHONY: install lint format test train train-gbm report serve docker-build docker-run
+.PHONY: install lint format test train train-gbm report serve docker-build docker-run dashboard up down
 
 install:
 	pip install -e ".[api,dashboard,dev]"
@@ -27,7 +27,16 @@ serve: train-gbm
 	uvicorn credit_underwriting.api:app --reload
 
 docker-build: train-gbm
-	docker build -t credit-underwriting .
+	docker build -t klarlend .
 
 docker-run:
-	docker run --rm -p 8000:8000 credit-underwriting
+	docker run --rm -p 8000:8000 klarlend
+
+dashboard: train-gbm
+	streamlit run dashboard/app.py
+
+up: train-gbm
+	docker compose up --build
+
+down:
+	docker compose down

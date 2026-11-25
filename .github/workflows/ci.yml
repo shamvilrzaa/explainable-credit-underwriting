@@ -17,7 +17,7 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
           cache: pip
-      - run: pip install -e ".[api,dev]"
+      - run: pip install -e ".[api,dashboard,dev]"
       - run: ruff check .
       - run: ruff format --check .
       - run: pytest

@@ -1,13 +1,23 @@
-# Explainable Credit Underwriting
+# Klarlend
 
 [![CI](https://github.com/shamvilrzaa/explainable-credit-underwriting/actions/workflows/ci.yml/badge.svg)](https://github.com/shamvilrzaa/explainable-credit-underwriting/actions/workflows/ci.yml)
 ![Python](https://img.shields.io/badge/python-3.11%20%7C%203.12-blue)
 ![Code style: ruff](https://img.shields.io/badge/code%20style-ruff-261230)
 ![License: MIT](https://img.shields.io/badge/license-MIT-green)
 
-> An EU AI Act-aware credit underwriting engine: probability-of-default model, adverse-action reason codes, fairness audit, and a production-style scoring API.
+> Explainable credit underwriting built for the EU AI Act. Every decision comes with a probability of default, a score and the reasons behind it; uncertain cases go to a human underwriter, and every override is logged.
+
+Klarlend consists of a probability-of-default model with monotonic constraints, SHAP-based reason codes, a fairness audit, a REST API for loan origination systems and a review console for underwriters and risk managers.
 
 **Status:** work in progress. See the roadmap below.
+
+## Run it
+
+```bash
+make up
+```
+
+Starts the API on http://localhost:8000 and the console on http://localhost:8501 with Docker Compose. Without Docker, use `make serve` and `make dashboard`.
 
 ## Why this project
 
@@ -138,6 +148,25 @@ Gender and age are never model inputs, but other features can act as proxies (em
 
 On synthetic data, approval ratios stay above 0.9 for every group, but the model overestimates risk for applicants under 30 by about 3 percentage points: their short employment history is penalised more than their actual default rate justifies. In production this would trigger a review of the employment feature or a group-level recalibration. Full tables are written to `artifacts/fairness.md`.
 
+## Review console
+
+```bash
+make dashboard
+```
+
+| Page | Purpose |
+|---|---|
+| Queue | Applications in the referral band, highest risk first, with the main risk factor and override statistics |
+| Review | Decision, PD, score, reasons, the largest loan that would be approved, and a form to record the underwriter's final decision |
+| Batch scoring | Upload a CSV of applications and download decisions with reasons; invalid rows are reported per field |
+| Policy | Simulate approval and decline thresholds, see the effect on approvals and losses, and apply a new live policy with approver and reason |
+| Monitoring | Gini, KS, calibration, monotonic constraints and the fairness audit |
+| Settings | Live policy and change history, model details |
+
+The console supports light and dark mode and follows the system setting by default.
+
+**Audit trail.** Every underwriter decision is written to the review log with the model version, the model's recommendation, the final decision, the reviewer and the rationale. Every policy change is stored with the approver, the reason and a timestamp. The API and the console read the same live policy.
+
 ## Scoring API
 
 ```bash
@@ -166,11 +195,11 @@ The API does not accept gender or age: unknown fields are rejected, so protected
 ### Docker
 
 ```bash
-make docker-build
-make docker-run
+make up      # API and console with a shared data volume
+make down
 ```
 
-The image is multi-stage, runs as a non-root user and has a health check. CI builds it on every push and sends a test request to the running container.
+One multi-stage image serves both the API and the console. It runs as a non-root user, has health checks, and keeps the model in the image and mutable data (policy, review log) in a volume. CI builds the image on every push and sends a test request to the running container.
 
 ## Evaluation
 
@@ -192,9 +221,10 @@ Probabilities of default are mapped to a points score (600 points at 50:1 good:b
 - [x] SHAP-based adverse-action reason codes and decision policy
 - [x] Fairness audit across gender and age bands
 - [x] FastAPI scoring service, Docker image and container smoke test in CI
-- [ ] Streamlit underwriter dashboard
+- [x] Review console (Streamlit): referral queue, application review, batch scoring, policy management, monitoring, light and dark mode
+- [x] Docker Compose setup for API and console
 - [ ] Model card and AI Act technical documentation
 
 ## Kurzfassung (Deutsch)
 
-Ein erklärbares Kreditscoring-Modell nach den Anforderungen des EU AI Act: Ausfallwahrscheinlichkeit, nachvollziehbare Ablehnungsgründe, Fairness-Prüfung und eine produktionsnahe Scoring-API. Sensible Merkmale (Geschlecht, Alter) fließen nicht ins Modell ein und dienen nur der Fairness-Analyse.
+Klarlend ist ein erklärbares Kreditscoring-System nach den Anforderungen des EU AI Act: Ausfallwahrscheinlichkeit, nachvollziehbare Ablehnungsgründe, Fairness-Prüfung, eine Scoring-API und eine Prüfoberfläche für Kreditsachbearbeiter mit lückenlosem Audit-Trail. Sensible Merkmale (Geschlecht, Alter) fließen nicht ins Modell ein und dienen nur der Fairness-Analyse.

@@ -94,6 +94,8 @@ def test_empty_batch_is_rejected(client):
 
 def test_settings_from_env(monkeypatch, tmp_path):
     monkeypatch.setenv("MODEL_PATH", str(tmp_path / "m.joblib"))
+    monkeypatch.setenv("POLICY_PATH", str(tmp_path / "policy.json"))
+    monkeypatch.delenv("APPROVE_BELOW", raising=False)
     monkeypatch.setenv("DECLINE_ABOVE", "0.3")
     settings = Settings.from_env()
     assert settings.model_path == tmp_path / "m.joblib"

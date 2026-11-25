@@ -3,4 +3,6 @@
 !README.md
 !src/
 !artifacts/gbm.joblib
+!dashboard/
+!.streamlit/
 **/__pycache__
